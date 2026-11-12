@@ -1,160 +1,99 @@
-## Сетап
+## ✨ Возможности
 
-.env.example
-PORT=8080
-DB_PATH=store.db
+### Для покупателей:
+- **Каталог**: Просмотр товаров с адаптивной сеткой.
+- **Фильтрация и сортировка**: По полу, цвету, сезону и цене (по возрастанию/убыванию).
+- **Поиск**: Мгновенный поиск по названию с кнопкой быстрой очистки.
+- **Корзина**: Добавление товаров, изменение количества прямо в карточке или в корзине, удаление позиций, подсчёт итоговой суммы.
+- **Оформление заказа**: Перенос корзины в статус заказа с очисткой корзины.
 
+### Для администраторов:
+- **Панель управления**: Добавление, редактирование и удаление товаров.
+- **Загрузка изображений**: Привязка фотографий к товарам через удобный интерфейс.
+- **Безопасность**: Доступ к панели только для пользователей с ролью `4` (Admin).
 
-1. зависимости: `go mod tidy`
-2. cd "/c/Users/thyme/Documents/.Important/Golang Projects/workspace" 
-3. запуск сервера: `go run cmd/server/main.go`
+### Системные особенности:
+- **Автономность**: Фронтенд встроен в бинарный файл Go (через `//go:embed`), что позволяет распространять проект одним файлом.
+- **Безопасность**: Пароли хешируются алгоритмом SHA-256 перед сохранением в БД.
+- **Автоинициализация**: При первом запуске автоматически создаётся структура БД и аккаунт администратора по умолчанию.
 
-### Продукт
-- `POST /product` - Создать продукт (admin)
-  ```bash
-  curl -X POST http://localhost:8080/product -H "Content-Type: application/json" -d '{"name":"T-Shirt","type":"tops","gender":"male","size":"M","color":"black","brand":"Nike","season":"summer","price":29.99}'
-  ```
-- `GET /product` - Список продуктов (?limit=&offset=&type=&gender=&size=&color=&brand=&season=&sort=price_asc|price_desc)
-  ```bash
-  curl http://localhost:8080/product?limit=10&offset=0&sort=price_asc
-  ```
-- `GET /product/{id}` - Достать продукт
-  ```bash
-  curl http://localhost:8080/product/<uuid>
-  ```
-- `PUT /product/{id}` - Обновить продукт
-  ```bash
-  curl -X PUT http://localhost:8080/product/<uuid> -H "Content-Type: application/json" -d '{"name":"Updated T-Shirt","price":39.99}'
-  ```
-- `DELETE /product/{id}` - Удалить продукт
-  ```bash
-  curl -X DELETE http://localhost:8080/product/<uuid>
-  ```
+---
 
-### Фото
-- `POST /photo` - Загрузить фото (multipart/form-data, fields: file, product_id)
-  ```bash
-  curl -X POST http://localhost:8080/photo -F "file=@test.jpg" -F "product_id=<uuid>"
-  ```
-- `GET /photo/{id}` - Взять данные о фото
-  ```bash
-  curl http://localhost:8080/photo/<uuid> --output photo.jpg
-  ```
-- `DELETE /photo/{id}` - Удалить фото
-  ```bash
-  curl -X DELETE http://localhost:8080/photo/<uuid>
-  ```
+## Технологический стек
+- **Backend**: Go (Chi Router, стандартная библиотека `net/http`, `database/sql`)
+- **Database**: SQLite3 (`store.db`)
+- **Frontend**: Vanilla JavaScript, HTML5, CSS3 (без внешних фреймворков)
 
-### Роль
-- `POST /role` - Создать роль
-  ```bash
-  curl -X POST http://localhost:8080/role -H "Content-Type: application/json" -d '{"name":"moderator"}'
-  ```
-- `GET /role` - Список ролей
-  ```bash
-  curl http://localhost:8080/role
-  ```
-- `PUT /role/{id}` - Обновить роль
-  ```bash
-  curl -X PUT http://localhost:8080/role/<uuid> -H "Content-Type: application/json" -d '{"name":"supervisor"}'
-  ```
-- `DELETE /role/{id}` - Удалить роль
-  ```bash
-  curl -X DELETE http://localhost:8080/role/<uuid>
-  ```
+---
 
-### Пользователь
-- `POST /user` - Создать пользователя
-  ```bash
-  curl -X POST http://localhost:8080/user -H "Content-Type: application/json" -d '{"name":"John","email":"john@test.com","phone":"+1234567890","role_id":"2"}'
-  ```a
-- `GET /user` - Список пользователей (?limit=&offset=)
-  ```bash
-  curl http://localhost:8080/user?limit=10&offset=0
-  ```
-- `GET /user/role/{id}` - Список пользователей по роли
-  ```bash
-  curl http://localhost:8080/user/role/2?limit=10&offset=0
-  ```
-- `PUT /user/{id}` - Обновить пользователя
-  ```bash
-  curl -X PUT http://localhost:8080/user/<uuid> -H "Content-Type: application/json" -d '{"name":"Jane","email":"jane@test.com"}'
-  ```
-- `DELETE /user/{id}` - Удалить пользователя
-  ```bash
-  curl -X DELETE http://localhost:8080/user/<uuid>
-  ```
+## Запуск и разработка
 
-### Корзина
-- `POST /cart` - Добавить в корзину
-  ```bash
-  curl -X POST http://localhost:8080/cart -H "Content-Type: application/json" -d '{"user_id":"<uuid>","product_id":"<uuid>","count":2}'
-  ```
-- `GET /cart/{user_id}` - Достать корзину пользователя
-  ```bash
-  curl http://localhost:8080/cart/<uuid>
-  ```
-- `PUT /cart/{id}` - Обновить предмет в корзине
-  ```bash
-  curl -X PUT http://localhost:8080/cart/<uuid> -H "Content-Type: application/json" -d '{"count":5}'
-  ```
-- `DELETE /cart/{id}` - Убрать из корзины
-  ```bash
-  curl -X DELETE http://localhost:8080/cart/<uuid>
-  ```
-
-### Заказ
-- `POST /order` - Создать заказ
-  ```bash
-  curl -X POST http://localhost:8080/order -H "Content-Type: application/json" -d '{"user_id":"<uuid>","status":1}'
-  ```
-- `GET /order` - Список заказов (?limit=&offset=&from=&to=&status=)
-  ```bash
-  curl http://localhost:8080/order?limit=10&offset=0&status=1
-  ```
-- `GET /order/{id}` - Достать заказ
-  ```bash
-  curl http://localhost:8080/order/<uuid>
-  ```
-- `PUT /order/{id}` - Обновить статус заказа
-  ```bash
-  curl -X PUT http://localhost:8080/order/<uuid> -H "Content-Type: application/json" -d '{"status":3}'
-  ```
-
-### Товар
-- `POST /order_item` - Добавить товар
-  ```bash
-  curl -X POST http://localhost:8080/order_item -H "Content-Type: application/json" -d '{"order_id":"<uuid>","product_id":"<uuid>","price":29.99}'
-  ```
-- `GET /order_item/{order_id}` - достать товар
-  ```bash
-  curl http://localhost:8080/order_item/<uuid>
-  ```
-
-## Выполнено
-- Все 7 сущностей с полным функционалом
-- SQLite с данными
-- Загрузка файлов для фото
-- Фильтры, сортировка
-- Вывод под json
-
-## Не выполнено
-- Настоящая аутентификация (роли устанавливаются но не на конечном уровне)
-
-## Возврат в изначалку
-1.  Удалить `store.db` и перезапустить сервер.
-2.  Создать `uploads/` папку хотя бы с одной картинкой (пр., `shoe.jpg`)
-
+### 1. Подготовка
+Убедитесь, что у вас установлен Go. В корне проекта выполните:
 ```bash
-# Создать админа
-curl -X POST http://localhost:8080/user -H "Content-Type: application/json" -d '{"name":"Admin Demo","email":"admin@demo.com","role_id":"4"}'
-
-# Создать клиента
-curl -X POST http://localhost:8080/user -H "Content-Type: application/json" -d '{"name":"Client Demo","email":"client@demo.com","role_id":"2"}'
-
-# Создать продукт
-curl -X POST http://localhost:8080/product -H "Content-Type: application/json" -d '{"name":"Demo T-Shirt","type":"tops","gender":"male","size":"M","color":"black","brand":"DemoBrand","season":"summer","price":1999.00}'
-
-# Загрузить фото продукту
-curl -X POST http://localhost:8080/photo -F "file=@uploads/shoe.jpg" -F "product_id=<PRODUCT_UUID>"
+go mod tidy
 ```
+
+### 2. Запуск в режиме разработки
+```bash
+go run cmd/server/main.go
+```
+Сервер запустится на порту `8080`. Откройте в браузере: `http://localhost:8080`
+
+### 3. Сборка исполняемого файла
+Для создания автономного приложения:
+```bash
+# Для Linux/MacOS
+go build -o clothing-store ./cmd/server
+
+# Для Windows (кросс-компиляция)
+GOOS=windows GOARCH=amd64 go build -o clothing-store.exe ./cmd/server
+```
+
+---
+
+## Доступ по умолчанию
+
+При первом запуске (если не существует `store.db`) сервер автоматически создаёт администратора:
+- **Email**: `admin@demo.com`
+- **Пароль**: `123456`
+
+---
+
+## API Reference
+
+### Товары (Products)
+- `GET /product?limit=10&offset=0&type=tops&gender=male&color=black&season=summer&sort=price_asc` — Список с фильтрами
+- `GET /product/{id}` — Детали товара
+- `POST /product` — Создание (требует JSON: `name`, `type`, `price` и др.)
+- `PUT /product/{id}` — Обновление
+- `DELETE /product/{id}` — Удаление
+
+### Фото (Photos)
+- `POST /photo` — Загрузка (multipart/form-data, поля: `file`, `product_id`)
+- `GET /photo/{id}` — Получение изображения
+- `DELETE /photo/{id}` — Удаление
+
+### Пользователи и Авторизация
+- `POST /user` — Регистрация (`name`, `email`, `password`, `role_id`)
+- `POST /user/login` — Вход (`email`, `password`)
+- `GET /user` — Список пользователей (требует прав)
+
+### Корзина и Заказы
+- `POST /cart` — Добавить (`user_id`, `product_id`, `count`)
+- `GET /cart/{user_id}` — Получить корзину
+- `PUT /cart/{id}` — Изменить количество
+- `DELETE /cart/{id}` — Удалить из корзины
+- `POST /order` — Создать заказ (`user_id`, `status`)
+- `POST /order_item` — Добавить позицию в заказ
+
+---
+
+## Сброс
+
+1. Остановить сервер (`Ctrl+C` или `pkill -f clothing-store`).
+2. Удалить файл базы данных:
+   ```bash
+   rm store.db
+   ```
+3. Запустить сервер заново.

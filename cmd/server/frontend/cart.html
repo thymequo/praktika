@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1100">
+  <title>Корзина | Магазин одежды</title>
+  <link rel="stylesheet" href="style.css?v=15">
+</head>
+<body>
+  <div class="main-wrapper">
+    <header class="site-header">
+      <div class="header-top">
+        <a href="index.html" class="logo">МАГАЗИН ОДЕЖДЫ</a>
+        <div class="header-user" id="header-actions"></div>
+      </div>
+      <nav class="main-nav" id="main-nav">
+        <a href="index.html" class="nav-link">Главная</a>
+        <a href="cart.html" class="nav-link active">Корзина</a>
+        <a href="admin.html" class="nav-link" id="nav-admin-link" style="display:none;">Управление</a>
+      </nav>
+    </header>
+
+    <main class="site-content" style="display: block;">
+      <h2 class="page-title">Ваша корзина</h2>
+      <div id="cart-summary" class="cart-summary"></div>
+      <div id="cart-container">
+        <table class="table-classic">
+          <thead>
+            <tr>
+              <th style="width:40%">Товар</th>
+              <th style="width:15%">Цена</th>
+              <th style="width:20%">Количество</th>
+              <th style="width:15%">Сумма</th>
+              <th style="width:10%">Действия</th>
+            </tr>
+          </thead>
+          <tbody id="cart-items"></tbody>
+        </table>
+        <div class="cart-total">
+          <span>Итого к оплате:</span>
+          <strong id="total-value">0 ₽</strong>
+          <button id="checkout-btn" class="btn-primary btn-large">Оформить заказ</button>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">&copy; Магазин одежды.</footer>
+  </div>
+  <script src="script.js?v=15"></script>
+</body>
+</html>

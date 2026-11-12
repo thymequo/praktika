@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1100">
+  <title>Каталог | Магазин одежды</title>
+  <link rel="stylesheet" href="style.css?v=15">
+</head>
+<body>
+  <div class="main-wrapper">
+    <header class="site-header">
+      <div class="header-top">
+        <a href="index.html" class="logo">МАГАЗИН ОДЕЖДЫ</a>
+        <div class="header-search">
+          <div class="search-input-wrapper">
+            <input type="text" id="global-search" placeholder="Поиск по каталогу...">
+          </div>
+          <button class="btn-search" onclick="renderCatalog()">Найти</button>
+        </div>
+        <div class="header-user" id="header-actions"></div>
+      </div>
+      <nav class="main-nav" id="main-nav">
+        <a href="index.html" class="nav-link active">Главная</a>
+        <a href="cart.html" class="nav-link">Корзина</a>
+        <a href="admin.html" class="nav-link" id="nav-admin-link" style="display:none;">Управление</a>
+      </nav>
+    </header>
+
+    <main class="site-content">
+      <div class="sidebar">
+        <h3>Категории</h3>
+        <ul class="cat-list">
+          <li><button class="cat-link active" data-type="">Все товары</button></li>
+          <li><button class="cat-link" data-type="tops">Футболки</button></li>
+          <li><button class="cat-link" data-type="hoodie">Худи</button></li>
+          <li><button class="cat-link" data-type="pants">Брюки</button></li>
+          <li><button class="cat-link" data-type="shoes">Обувь</button></li>
+        </ul>
+        
+        <h3 style="margin-top: 20px;">Фильтры</h3>
+        <div class="filter-box">
+          <label>Пол:</label>
+          <select id="filter-gender" class="input-field" onchange="renderCatalog()">
+            <option value="">Любой</option>
+            <option value="male">Мужской</option>
+            <option value="female">Женский</option>
+            <option value="unisex">Унисекс</option>
+          </select>
+          <label style="margin-top: 10px;">Цвет:</label>
+          <select id="filter-color" class="input-field" onchange="renderCatalog()">
+            <option value="">Любой</option>
+            <option value="white">Белый</option>
+            <option value="black">Чёрный</option>
+            <option value="gray">Серый</option>
+            <option value="blue">Синий</option>
+            <option value="red">Красный</option>
+            <option value="green">Зелёный</option>
+            <option value="yellow">Жёлтый</option>
+            <option value="brown">Коричневый</option>
+            <option value="beige">Бежевый</option>
+            <option value="pink">Розовый</option>
+            <option value="purple">Фиолетовый</option>
+            <option value="orange">Оранжевый</option>
+          </select>
+          <label style="margin-top: 10px;">Сезон:</label>
+          <select id="filter-season" class="input-field" onchange="renderCatalog()">
+            <option value="">Любой</option>
+            <option value="summer">Лето</option>
+            <option value="winter">Зима</option>
+            <option value="spring">Весна</option>
+            <option value="autumn">Осень</option>
+          </select>
+          <label style="margin-top: 10px;">Сортировка:</label>
+          <select id="filter-sort" class="input-field" onchange="renderCatalog()">
+            <option value="">По умолчанию</option>
+            <option value="price_asc">Сначала дешевые</option>
+            <option value="price_desc">Сначала дорогие</option>
+          </select>
+          <button class="btn-reset-filters" onclick="resetAllFilters()">Сбросить всё</button>
+        </div>
+      </div>
+
+      <div class="content-area">
+        <h2 class="page-title">Каталог товаров</h2>
+        <div id="catalog-grid" class="products-grid"></div>
+      </div>
+    </main>
+
+    <footer class="site-footer">&copy; Магазин одежды.</footer>
+  </div>
+  <script src="script.js?v=15"></script>
+</body>
+</html>
