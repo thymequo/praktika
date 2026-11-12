@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1200">
+  <title>Заказы | Магазин одежды</title>
+  <link rel="stylesheet" href="style.css?v=17">
+</head>
+<body>
+  <div class="main-wrapper">
+    <header class="site-header">
+      <div class="header-top">
+        <a href="index.html" class="logo">МАГАЗИН ОДЕЖДЫ</a>
+        <div class="header-user" id="header-actions"></div>
+      </div>
+      <nav class="main-nav" id="main-nav">
+        <a href="index.html" class="nav-link">Главная</a>
+        <a href="cart.html" class="nav-link">Корзина</a>
+        <a href="orders.html" class="nav-link active" id="nav-orders-link">Заказы</a>
+        <a href="admin.html" class="nav-link" id="nav-admin-link" style="display:none;">Управление</a>
+      </nav>
+    </header>
+
+    <main class="site-content" style="display: block;">
+      <h2 class="page-title">История заказов</h2>
+      <div id="my-orders-container">
+        <table class="table-classic">
+          <thead>
+            <tr>
+              <th style="width:20%">№ Заказа</th>
+              <th style="width:30%">Дата оформления</th>
+              <th style="width:30%">Статус</th>
+              <th style="width:20%">Действия</th>
+            </tr>
+          </thead>
+          <tbody id="my-orders-table"></tbody>
+        </table>
+      </div>
+    </main>
+
+    <footer class="site-footer">&copy; Магазин одежды.</footer>
+  </div>
+  <script src="script.js?v=17"></script>
+</body>
+</html>

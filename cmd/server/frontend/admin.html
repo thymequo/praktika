@@ -2,9 +2,9 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=1100">
+  <meta name="viewport" content="width=1200">
   <title>Управление | Магазин одежды</title>
-  <link rel="stylesheet" href="style.css?v=15">
+  <link rel="stylesheet" href="style.css?v=18">
 </head>
 <body>
   <div class="main-wrapper">
@@ -16,6 +16,7 @@
       <nav class="main-nav" id="main-nav">
         <a href="index.html" class="nav-link">Главная</a>
         <a href="cart.html" class="nav-link">Корзина</a>
+        <a href="orders.html" class="nav-link" id="nav-orders-link" style="display:none;">Заказы</a>
         <a href="admin.html" class="nav-link active" id="nav-admin-link">Управление</a>
       </nav>
     </header>
@@ -26,7 +27,13 @@
         <a href="index.html" class="btn-primary" style="text-decoration:none;display:inline-block;padding:5px 15px;">На главную</a>
       </div>
       <div id="admin-panel" style="display:none;">
-        <div id="admin-list-view">
+        <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+          <button class="btn-small" onclick="showAdminProducts()" style="padding: 6px 15px;">Товары</button>
+          <button class="btn-small" onclick="showAdminOrders()" style="padding: 6px 15px;">Заказы</button>
+          <button class="btn-small" onclick="showAdminPickup()" style="padding: 6px 15px;">Выдача</button>
+        </div>
+
+        <div id="admin-products-view">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
             <h2 class="page-title" style="margin:0;">Управление товарами</h2>
             <button class="btn-primary" onclick="showAdminForm()">+ Добавить новый товар</button>
@@ -36,6 +43,27 @@
             <tbody id="admin-products-table"></tbody>
           </table>
         </div>
+
+        <div id="admin-orders-view" style="display:none;">
+          <h2 class="page-title" style="margin:0 0 15px 0;">Управление заказами</h2>
+          <table class="table-classic">
+            <thead><tr><th>ID заказа / Пользователь</th><th>Дата</th><th>Статус</th><th>Действия</th></tr></thead>
+            <tbody id="admin-orders-table"></tbody>
+          </table>
+        </div>
+
+        <div id="admin-pickup-view" style="display:none;">
+          <h2 class="page-title" style="margin:0 0 15px 0;">Выдача заказов</h2>
+          <div class="admin-box">
+            <p style="margin:0 0 10px 0; font-size:12px; color:#555;">Отсканируйте QR-код клиента или введите ID пользователя вручную:</p>
+            <div style="display:flex; gap:10px; margin-bottom:15px;">
+              <input type="text" id="pickup-user-id" class="input-field" style="margin:0; flex:1;" placeholder="Вставьте user_id из QR-кода">
+              <button class="btn-primary" onclick="checkPickup()">Проверить</button>
+            </div>
+            <div id="pickup-results"></div>
+          </div>
+        </div>
+
         <div id="admin-form-view" style="display:none;">
           <h2 class="page-title" id="form-title">Добавить товар</h2>
           <div class="admin-box">
@@ -118,7 +146,7 @@
               </div>
               <div style="margin-top:20px;padding-top:15px;border-top:1px solid #e0e0e0;">
                 <button type="submit" class="btn-primary">Сохранить товар</button>
-                <button type="button" class="btn-small" onclick="showAdminList()" style="margin-left:10px;">Отмена</button>
+                <button type="button" class="btn-small" onclick="showAdminProducts()" style="margin-left:10px;">Отмена</button>
               </div>
             </form>
           </div>
@@ -127,6 +155,6 @@
     </main>
     <footer class="site-footer">&copy; Магазин одежды.</footer>
   </div>
-  <script src="script.js?v=15"></script>
+  <script src="script.js?v=18"></script>
 </body>
 </html>

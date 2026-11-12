@@ -11,8 +11,12 @@ const typeLabels = { tops: 'Футболки', hoodie: 'Худи', pants: 'Бр�
 const genderLabels = { male: 'Мужской', female: 'Женский', unisex: 'Унисекс' };
 const colorLabels = { white: 'Белый', black: 'Чёрный', gray: 'Серый', blue: 'Синий', red: 'Красный', green: 'Зелёный', yellow: 'Жёлтый', brown: 'Коричневый', beige: 'Бежевый', pink: 'Розовый', purple: 'Фиолетовый', orange: 'Оранжевый' };
 const seasonLabels = { summer: 'Лето', winter: 'Зима', spring: 'Весна', autumn: 'Осень' };
+const orderStatusLabels = { 1: 'Принят', 2: 'В работе', 3: 'Собран', 4: 'Готов к выдаче', 5: 'Отменён', 6: 'Выдан' };
 
 function label(key, map, fallback) { return key ? (map[key] || key) : (fallback || '—'); }
+
+// QR icon SVG
+const QR_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 0h6v6H0V0zm1 1v4h4V1H1zm8 0h6v6H9V1zm1 1v4h4V2h-4zM0 9h6v6H0V9zm1 1v4h4v-4H1zm9-1h1v1h-1V9zm2 0h1v1h-1V9zm2 0h1v1h-1V9zm-4 2h1v1h-1v-1zm2 0h1v1h-1v-1zm2 0h1v1h-1v-1zm-4 2h1v1h-1v-1zm2 0h2v2h-2v-2zm3 0h1v2h-1v-2z"/></svg>`;
 
 // auth
 const Auth = {
@@ -28,6 +32,7 @@ const Auth = {
     const container = document.getElementById('header-actions');
     if (!container) return;
     let html = '';
+    html += `<button onclick="showQR()" class="btn-link qr-btn" title="QR-код пользователя">${QR_ICON_SVG}</button>`;
     if (this.user && this.user.id) {
       html += `<span class="user-greeting">Привет, <b>${this.user.name || 'User'}</b></span>`;
       html += `<button onclick="Auth.logout()" class="btn-link" style="margin-left:8px;">Выход</button>`;
@@ -38,7 +43,7 @@ const Auth = {
     }
     container.innerHTML = html;
     updateCartCount();
-    updateAdminNav();
+    updateNavLinks();
   },
   showModal(mode) {
     const existing = document.querySelector('.modal-overlay');
@@ -104,7 +109,7 @@ const Auth = {
         localStorage.setItem('user', JSON.stringify(this.user));
         modal.remove();
         this.renderHeader();
-        if (window.location.pathname.includes('cart.html')) window.location.href = 'index.html';
+        if (window.location.pathname.includes('cart.html') || window.location.pathname.includes('orders.html')) window.location.href = 'index.html';
         else window.location.reload();
       } catch (err) {
         errorDiv.textContent = err.message;
@@ -119,7 +124,7 @@ const Auth = {
       localStorage.removeItem('user');
       this.user = null;
       this.renderHeader();
-      if (window.location.pathname.includes('admin.html')) window.location.href = 'index.html';
+      if (window.location.pathname.includes('admin.html') || window.location.pathname.includes('orders.html')) window.location.href = 'index.html';
       else if (window.location.pathname.includes('cart.html')) window.location.reload();
       else window.location.reload();
     }
@@ -127,18 +132,45 @@ const Auth = {
 };
 Auth.init();
 
-// show/hide admin nav link based on role
-function updateAdminNav() {
-  const navLink = document.getElementById('nav-admin-link');
-  if (!navLink) return;
-  if (Auth.user && (Auth.user.role_id === '4' || Auth.user.role_id === 4)) {
-    navLink.style.display = 'inline-block';
-  } else {
-    navLink.style.display = 'none';
+function updateNavLinks() {
+  const adminLink = document.getElementById('nav-admin-link');
+  if (adminLink) {
+    adminLink.style.display = (Auth.user && (Auth.user.role_id === '4' || Auth.user.role_id === 4)) ? 'inline-block' : 'none';
+  }
+  const ordersLink = document.getElementById('nav-orders-link');
+  if (ordersLink) {
+    ordersLink.style.display = (Auth.user && Auth.user.id) ? 'inline-block' : 'none';
   }
 }
 
-// api helper
+window.showQR = function () {
+  if (!Auth.user || !Auth.user.id) {
+    Auth.showModal('login');
+    return;
+  }
+  const existing = document.querySelector('.modal-overlay');
+  if (existing) existing.remove();
+
+  const qrData = JSON.stringify({ user_id: Auth.user.id });
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=10&data=${encodeURIComponent(qrData)}`;
+
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.innerHTML = `
+    <div class="modal-window qr-modal">
+      <div class="modal-header">
+        <h3>Ваш QR-код</h3>
+        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">x</button>
+      </div>
+      <div class="modal-body" style="text-align:center;">
+        <p style="font-size:12px; color:#666; margin-bottom:12px;">Покажите этот код менеджеру для получения заказа</p>
+        <img src="${qrUrl}" alt="QR Code" class="qr-image" style="border:1px solid #ccc; padding:8px; background:#fff; border-radius:4px;">
+        <p style="font-size:10px; color:#999; margin-top:10px; word-break:break-all;">${qrData}</p>
+      </div>
+    </div>`;
+  document.body.appendChild(modal);
+};
+
 async function api(endpoint, options = {}) {
   try {
     const res = await fetch(`${API_BASE}${endpoint}`, {
@@ -156,7 +188,6 @@ async function updateCartCount() {
   if (!Auth.user || !Auth.user.id) return;
   const items = await api(`/cart/${Auth.user.id}`) || [];
   const count = items.reduce((sum, i) => sum + i.count, 0);
-  // update cart summary on cart page
   const summary = document.getElementById('cart-summary');
   if (summary) {
     const word = getCartWord(count);
@@ -173,14 +204,12 @@ function getCartWord(n) {
   return 'товаров';
 }
 
-// truncate helper
 function truncateText(str, maxLen) {
   if (!str) return '';
   if (str.length <= maxLen) return str;
   return str.substring(0, maxLen) + '...';
 }
 
-// reset all filters
 window.resetAllFilters = function () {
   const gender = document.getElementById('filter-gender');
   const color = document.getElementById('filter-color');
@@ -200,7 +229,6 @@ window.resetAllFilters = function () {
   renderCatalog();
 };
 
-// catalog
 window.renderCatalog = async function () {
   const grid = document.getElementById('catalog-grid');
   if (!grid) return;
@@ -247,7 +275,7 @@ window.renderCatalog = async function () {
           <input type="number" class="qty-input" value="${inCart.count}" min="1" max="999" onchange="updateQtyFromInput('${inCart.id}', this.value)" onkeydown="if(event.key==='Enter'){this.blur()}">
           <button class="btn-small qty-btn qty-btn-right" onclick="changeQty('${inCart.id}', 1)">+</button>
          </div>`
-      : `<button class="btn-primary" onclick="addToCart('${p.id}', this)">Добавить в корзину</button>`;
+      : `<button class="btn-primary" onclick="addToCart('${p.id}', this)">В корзину</button>`;
     return `
     <div class="product-box">
       <div class="product-img">
@@ -264,7 +292,6 @@ window.renderCatalog = async function () {
   }).join('');
 };
 
-// init
 document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.cat-link').forEach(link => {
     link.addEventListener('click', function (e) {
@@ -297,6 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadProduct();
   loadCart();
   loadAdmin();
+  loadMyOrders();
 });
 
 window.addToCart = async (id, btn) => {
@@ -351,7 +379,6 @@ window.updateQtyFromInput = async (cartItemId, value) => {
   if (window.location.pathname.includes('cart.html')) loadCart();
 };
 
-// product page
 async function loadProduct() {
   const container = document.getElementById('product-container');
   if (!container) return;
@@ -396,7 +423,6 @@ async function loadProduct() {
     </div>`;
 }
 
-// cart
 async function loadCart() {
   const tbody = document.getElementById('cart-items');
   const totalEl = document.getElementById('total-value');
@@ -457,21 +483,42 @@ async function loadCart() {
         await api(`/cart/${item.id}`, { method: 'DELETE' });
       }
       alert(`Заказ #${order.id} успешно оформлен!`);
-      window.location.href = 'index.html';
+      window.location.href = 'orders.html';
     };
   }
   await render();
 }
 
-// admin
-window.showAdminList = function () {
-  document.getElementById('admin-list-view').style.display = 'block';
+// Admin
+window.showAdminProducts = function () {
+  document.getElementById('admin-products-view').style.display = 'block';
+  document.getElementById('admin-orders-view').style.display = 'none';
+  document.getElementById('admin-pickup-view').style.display = 'none';
   document.getElementById('admin-form-view').style.display = 'none';
   loadAdminProducts();
 };
 
+window.showAdminOrders = function () {
+  document.getElementById('admin-products-view').style.display = 'none';
+  document.getElementById('admin-orders-view').style.display = 'block';
+  document.getElementById('admin-pickup-view').style.display = 'none';
+  document.getElementById('admin-form-view').style.display = 'none';
+  loadAdminOrders();
+};
+
+window.showAdminPickup = function () {
+  document.getElementById('admin-products-view').style.display = 'none';
+  document.getElementById('admin-orders-view').style.display = 'none';
+  document.getElementById('admin-pickup-view').style.display = 'block';
+  document.getElementById('admin-form-view').style.display = 'none';
+  document.getElementById('pickup-user-id').value = '';
+  document.getElementById('pickup-results').innerHTML = '';
+};
+
 window.showAdminForm = function (product = null) {
-  document.getElementById('admin-list-view').style.display = 'none';
+  document.getElementById('admin-products-view').style.display = 'none';
+  document.getElementById('admin-orders-view').style.display = 'none';
+  document.getElementById('admin-pickup-view').style.display = 'none';
   document.getElementById('admin-form-view').style.display = 'block';
   const form = document.getElementById('product-form');
   form.reset();
@@ -510,6 +557,100 @@ async function loadAdminProducts() {
       <td><button class="btn-small" onclick='editProduct("${p.id}")'>Изменить</button></td>
     </tr>`).join('');
 }
+
+async function loadAdminOrders() {
+  const tbody = document.getElementById('admin-orders-table');
+  if (!tbody) return;
+  const orders = await api('/order?limit=200') || [];
+  // hide "Выдан" (status 6) orders
+  const activeOrders = orders.filter(o => o.status !== 6);
+  if (activeOrders.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:20px;">Заказов пока нет.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = activeOrders.map(o => `
+    <tr data-order-id="${o.id}">
+      <td><b>${o.id}</b><br><small>${o.user_id}</small></td>
+      <td>${new Date(o.date_time).toLocaleString('ru-RU')}</td>
+      <td>
+        <select class="input-field" style="margin:0;width:auto;" onchange="updateOrderStatus('${o.id}', this.value)">
+          <option value="1" ${o.status === 1 ? 'selected' : ''}>Принят</option>
+          <option value="2" ${o.status === 2 ? 'selected' : ''}>В работе</option>
+          <option value="3" ${o.status === 3 ? 'selected' : ''}>Собран</option>
+          <option value="4" ${o.status === 4 ? 'selected' : ''}>Готов к выдаче</option>
+          <option value="5" ${o.status === 5 ? 'selected' : ''}>Отменён</option>
+        </select>
+      </td>
+      <td><button class="btn-small" onclick="viewOrderDetails('${o.id}')">Состав</button></td>
+    </tr>
+  `).join('');
+}
+
+window.updateOrderStatus = async (orderId, newStatus) => {
+  await api(`/order/${orderId}`, { method: 'PUT', body: JSON.stringify({ status: parseInt(newStatus) }) });
+  alert('Статус заказа обновлён');
+  loadAdminOrders();
+};
+
+window.viewOrderDetails = async (orderId) => {
+  const items = await api(`/order_item/${orderId}`) || [];
+  if (items.length === 0) {
+    alert('Элементы заказа не найдены');
+    return;
+  }
+  let details = 'Состав заказа:\n';
+  for (const item of items) {
+    const p = await api(`/product/${item.product_id}`);
+    details += `- ${p ? p.name : 'Товар удалён'} (${Math.round(item.price)} ₽)\n`;
+  }
+  alert(details);
+};
+
+window.checkPickup = async function () {
+  const userId = document.getElementById('pickup-user-id').value.trim();
+  const resultsDiv = document.getElementById('pickup-results');
+  if (!userId) {
+    resultsDiv.innerHTML = '<div class="empty-box">Введите ID пользователя</div>';
+    return;
+  }
+  resultsDiv.innerHTML = '<div style="text-align:center; padding:20px;">Загрузка...</div>';
+  const orders = await api(`/order?user_id=${userId}&limit=50`) || [];
+  // hide "Выдан" orders
+  const activeOrders = orders.filter(o => o.status !== 6);
+  if (activeOrders.length === 0) {
+    resultsDiv.innerHTML = '<div class="empty-box">У этого пользователя нет активных заказов</div>';
+    return;
+  }
+  const readyOrders = activeOrders.filter(o => o.status === 4);
+  const otherOrders = activeOrders.filter(o => o.status !== 4);
+  
+  let html = '';
+  if (readyOrders.length > 0) {
+    html += `<div class="pickup-ready">
+      <h4 style="color:#009933; margin:0 0 10px 0;">Готовы к выдаче (${readyOrders.length}):</h4>
+      <p style="font-size:11px; color:#666; margin:0 0 10px 0;">Нажмите на заказ, чтобы отметить его как выданный</p>
+      <ul style="margin:0; padding-left:20px; list-style:none;">
+        ${readyOrders.map(o => `<li class="pickup-order-item" onclick="markAsPickedUp('${o.id}')"><b>#${o.id.substring(0,8)}...</b> — ${new Date(o.date_time).toLocaleString('ru-RU')}</li>`).join('')}
+      </ul>
+    </div>`;
+  }
+  if (otherOrders.length > 0) {
+    html += `<div class="pickup-other" style="margin-top:15px;">
+      <h4 style="color:#666; margin:0 0 10px 0;">Другие заказы (${otherOrders.length}):</h4>
+      <ul style="margin:0; padding-left:20px; color:#888; list-style:none;">
+        ${otherOrders.map(o => `<li>#${o.id.substring(0,8)}... — ${orderStatusLabels[o.status] || '—'} (${new Date(o.date_time).toLocaleDateString('ru-RU')})</li>`).join('')}
+      </ul>
+    </div>`;
+  }
+  resultsDiv.innerHTML = html;
+};
+
+window.markAsPickedUp = async function (orderId) {
+  if (!confirm('Отметить заказ как выданный? Он исчезнет из всех списков.')) return;
+  await api(`/order/${orderId}`, { method: 'PUT', body: JSON.stringify({ status: 6 }) });
+  alert('Заказ отмечен как выданный');
+  checkPickup(); // refresh pickup view
+};
 
 window.editProduct = async function (id) {
   const p = await api(`/product/${id}`);
@@ -553,7 +694,7 @@ document.addEventListener('submit', async function (e) {
     }
 
     alert('Товар успешно сохранён!');
-    showAdminList();
+    showAdminProducts();
   } catch (err) {
     console.error(err);
     alert('Ошибка при сохранении товара.');
@@ -567,9 +708,37 @@ async function loadAdmin() {
   if (Auth.user && (Auth.user.role_id === '4' || Auth.user.role_id === 4)) {
     panel.style.display = 'block';
     denied.style.display = 'none';
-    showAdminList();
+    showAdminProducts();
   } else {
     panel.style.display = 'none';
     denied.style.display = 'block';
   }
+}
+
+async function loadMyOrders() {
+  const tbody = document.getElementById('my-orders-table');
+  const container = document.getElementById('my-orders-container');
+  if (!tbody || !container) return;
+  
+  if (!Auth.user || !Auth.user.id) {
+    container.innerHTML = `<div class="empty-box"><h3>Доступ запрещён</h3><p>Для просмотра истории заказов необходимо <a href="#" onclick="Auth.showModal('login'); return false;">войти</a>.</p></div>`;
+    return;
+  }
+
+  const orders = await api(`/order?user_id=${Auth.user.id}&limit=50`) || [];
+  // hide "Выдан" orders
+  const activeOrders = orders.filter(o => o.status !== 6);
+  if (activeOrders.length === 0) {
+    container.innerHTML = `<div class="empty-box"><h3>У вас пока нет активных заказов</h3><a href="index.html" class="btn-primary" style="text-decoration:none;display:inline-block;padding:5px 15px;">Перейти к покупкам</a></div>`;
+    return;
+  }
+
+  tbody.innerHTML = activeOrders.map(o => `
+    <tr>
+      <td><b>#${o.id.substring(0, 8)}...</b></td>
+      <td>${new Date(o.date_time).toLocaleString('ru-RU')}</td>
+      <td><span class="status-badge status-${o.status}">${orderStatusLabels[o.status] || 'Неизвестно'}</span></td>
+      <td><button class="btn-small" onclick="viewOrderDetails('${o.id}')">Состав</button></td>
+    </tr>
+  `).join('');
 }

@@ -36,11 +36,12 @@ func (h *Handler) GetOrders(w http.ResponseWriter, r *http.Request) {
 		limit = 10
 	}
 
+	userID := r.URL.Query().Get("user_id")
 	from := r.URL.Query().Get("from")
 	to := r.URL.Query().Get("to")
 	status, _ := strconv.Atoi(r.URL.Query().Get("status"))
 
-	orders, err := h.repo.GetOrders(limit, offset, from, to, status)
+	orders, err := h.repo.GetOrders(limit, offset, userID, from, to, status)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

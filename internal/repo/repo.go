@@ -234,10 +234,14 @@ func (r *Repo) CreateOrder(o *model.Order) error {
 	return err
 }
 
-func (r *Repo) GetOrders(limit, offset int, from, to string, status int) ([]model.Order, error) {
+func (r *Repo) GetOrders(limit, offset int, userID, from, to string, status int) ([]model.Order, error) {
 	query := "SELECT id, user_id, date_time, status FROM orders WHERE 1=1"
 	args := []interface{}{}
 
+	if userID != "" {
+		query += " AND user_id = ?"
+		args = append(args, userID)
+	}
 	if from != "" {
 		query += " AND date_time >= ?"
 		args = append(args, from)
@@ -251,7 +255,7 @@ func (r *Repo) GetOrders(limit, offset int, from, to string, status int) ([]mode
 		args = append(args, status)
 	}
 
-	query += " LIMIT ? OFFSET ?"
+	query += " ORDER BY date_time DESC LIMIT ? OFFSET ?"
 	args = append(args, limit, offset)
 
 	rows, err := r.db.Query(query, args...)
